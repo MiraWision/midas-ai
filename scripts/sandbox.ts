@@ -71,12 +71,18 @@ async function cmdOrder(): Promise<void> {
   const price = side === 'BUY' ? ticker.ask : ticker.bid;
   if (!(price > 0)) throw new Error(`no live price for ${symbol}`);
 
-  const quoteAmount = arg('quote-amount');
-  const quantity = quoteAmount !== undefined ? Number(quoteAmount) / price : Number(arg('quantity'));
-  if (!(quantity > 0)) throw new Error('--quantity <base> or --quote-amount <quote> is required');
-
   const trades = await loadTrades(account.id);
   const state = replayTrades(account, trades);
+
+  let quantity: number;
+  if (side === 'SELL' && ARGV.includes('--all')) {
+    // Exact position size — avoids dust left by selling a display-rounded number.
+    quantity = state.positions.get(symbol)?.quantity ?? 0;
+  } else {
+    const quoteAmount = arg('quote-amount');
+    quantity = quoteAmount !== undefined ? Number(quoteAmount) / price : Number(arg('quantity'));
+  }
+  if (!(quantity > 0)) throw new Error('--quantity <base>, --quote-amount <quote>, or SELL --all is required');
   const result = executeOrder(state, account, { timestampMs: Date.now(), symbol, side, quantity, price });
   await appendTrade(account.id, result.trade);
 
@@ -106,7 +112,8 @@ async function cmdStatus(): Promise<void> {
   const snapshot = markToMarket(state, prices);
   const realized = trades.reduce((sum, t) => sum + t.realizedPnl, 0);
   console.log(`account ${account.id} (${account.name}) — ${trades.length} trades`);
-  for (const p of snapshot.positions) {
+  // Hide sub-cent dust (left by rounded partial sells) from the display.
+  for (const p of snapshot.positions.filter((p) => p.marketValue >= 0.01)) {
     console.log(
       `  ${p.symbol}: ${p.quantity.toFixed(8)} @ avg ${p.avgEntryPrice.toFixed(4)} → ${p.lastPrice.toFixed(4)}` +
         `  value ${p.marketValue.toFixed(2)}  uPnL ${p.unrealizedPnl >= 0 ? '+' : ''}${p.unrealizedPnl.toFixed(2)}`
