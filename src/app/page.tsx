@@ -1,3 +1,13 @@
+import Link from 'next/link';
+import { count, countDistinct } from 'drizzle-orm';
+
+import { db } from '@/db';
+import { marketCandles, sandboxAccounts, trackedMarkets } from '@/db/schema';
+import { readFindings, readQueue } from '@/server/research-workspace';
+import { STRATEGIES } from '@/strategies';
+
+export const dynamic = 'force-dynamic';
+
 const GATES = [
   'Kill criteria are fixed before the experiment',
   'Permutation nulls, not eyeballs',
@@ -7,7 +17,45 @@ const GATES = [
   'Negative results are results',
 ];
 
-export default function DashboardPage() {
+interface Stats {
+  candles: number | null;
+  symbols: number | null;
+  accounts: number | null;
+}
+
+async function loadStats(): Promise<Stats> {
+  try {
+    const [candleRows, symbolRows, accountRows] = await Promise.all([
+      db.select({ n: count() }).from(marketCandles),
+      db.select({ n: countDistinct(trackedMarkets.symbol) }).from(trackedMarkets),
+      db.select({ n: count() }).from(sandboxAccounts),
+    ]);
+    return { candles: candleRows[0]?.n ?? 0, symbols: symbolRows[0]?.n ?? 0, accounts: accountRows[0]?.n ?? 0 };
+  } catch {
+    return { candles: null, symbols: null, accounts: null };
+  }
+}
+
+export default async function DashboardPage() {
+  const stats = await loadStats();
+  const queue = readQueue();
+  const findings = readFindings();
+  const queued = queue.filter((r) => r.status === 'QUEUED').length;
+  const killed = queue.filter((r) => r.status === 'KILLED').length;
+
+  const statCells: Array<{ label: string; value: string; href: string }> = [
+    {
+      label: 'candles stored',
+      value: stats.candles === null ? 'db off' : stats.candles.toLocaleString('en-US'),
+      href: '/sandbox',
+    },
+    { label: 'tracked markets', value: stats.symbols === null ? '—' : String(stats.symbols), href: '/sandbox' },
+    { label: 'strategies', value: String(STRATEGIES.length), href: '/strategies' },
+    { label: 'hypotheses queued', value: String(queued), href: '/research' },
+    { label: 'findings (killed)', value: `${findings.length} (${killed})`, href: '/research' },
+    { label: 'sandbox accounts', value: stats.accounts === null ? '—' : String(stats.accounts), href: '/sandbox' },
+  ];
+
   return (
     <>
       <span className="mw-badge">foundation release</span>
@@ -18,23 +66,23 @@ export default function DashboardPage() {
         every idea and real money.
       </p>
 
-      <div className="mw-grid-3" style={{ marginTop: 28 }}>
-        <div className="mw-card">
-          <div className="mw-card-title">Statistical core</div>
-          Event-study harness with random-timing and feature-shuffle nulls — tested, deterministic,
-          and ready: <code>src/core/research</code>.
-        </div>
-        <div className="mw-card">
-          <div className="mw-card-title">Methodology as law</div>
-          A research workspace with a hypothesis queue, kill criteria, a knowledge journal, and a
-          test-count ledger: <code>research/</code>.
-        </div>
-        <div className="mw-card">
-          <div className="mw-card-title">Open contracts</div>
-          Pluggable strategy, exchange, and agent interfaces: <code>src/core</code>. Kraken market
-          data ships first; adapters are small.
-        </div>
+      <div className="mw-stat-grid" style={{ marginTop: 28 }}>
+        {statCells.map((cell) => (
+          <Link key={cell.label} href={cell.href} className="mw-card mw-stat-cell">
+            <div className="mw-stat-label">{cell.label}</div>
+            <div className="mw-stat-value">{cell.value}</div>
+          </Link>
+        ))}
       </div>
+
+      {stats.candles === null && (
+        <div className="mw-card" style={{ marginTop: 14 }}>
+          <p className="mw-empty">
+            Database unavailable — <code>docker compose up -d db</code>, then{' '}
+            <code>pnpm db:push</code> and <code>pnpm market:sync -- --refresh-universe</code>.
+          </p>
+        </div>
+      )}
 
       <div className="mw-card" style={{ marginTop: 28 }}>
         <div className="mw-card-title">The gates</div>

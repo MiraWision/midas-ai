@@ -17,9 +17,9 @@ import { usePinnedStrategies } from './use-pinned-strategies';
 const NAV = [
   { href: '/', label: 'Dashboard', icon: IconLayoutDashboard, ready: true },
   { href: '/strategies', label: 'Strategies', icon: IconChartLine, ready: true },
-  { href: '/research', label: 'Research', icon: IconFlask2, ready: false },
-  { href: '/sandbox', label: 'Sandbox', icon: IconChartCandle, ready: false },
-  { href: '/agent', label: 'Agent', icon: IconRobot, ready: false },
+  { href: '/research', label: 'Research', icon: IconFlask2, ready: true },
+  { href: '/sandbox', label: 'Sandbox', icon: IconChartCandle, ready: true },
+  { href: '/agent', label: 'Agent', icon: IconRobot, ready: true },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
