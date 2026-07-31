@@ -25,6 +25,38 @@ export const marketCandles = pgTable(
 );
 
 /**
+ * Sandbox accounts. State (cash, positions) is never stored — it is replayed
+ * from sandbox_trades, which is the single source of truth (see
+ * src/core/sandbox/engine.ts).
+ */
+export const sandboxAccounts = pgTable('sandbox_accounts', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  quote: text('quote').notNull(),
+  startingCash: doublePrecision('starting_cash').notNull(),
+  feeBps: doublePrecision('fee_bps').notNull(),
+  slippageBps: doublePrecision('slippage_bps').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Append-only trade log per sandbox account. */
+export const sandboxTrades = pgTable(
+  'sandbox_trades',
+  {
+    accountId: text('account_id').notNull(),
+    seq: bigint('seq', { mode: 'number' }).notNull(),
+    timestampMs: bigint('timestamp_ms', { mode: 'number' }).notNull(),
+    symbol: text('symbol').notNull(),
+    side: text('side').notNull(),
+    quantity: doublePrecision('quantity').notNull(),
+    fillPrice: doublePrecision('fill_price').notNull(),
+    fee: doublePrecision('fee').notNull(),
+    realizedPnl: doublePrecision('realized_pnl').notNull(),
+  },
+  (table) => [uniqueIndex('sandbox_trades_unique').on(table.accountId, table.seq)]
+);
+
+/**
  * The tracked universe. Universe refreshes only ADD rows; `enabled` is the
  * operator's switch and is never flipped back on by automation.
  */
