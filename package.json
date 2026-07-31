@@ -18,6 +18,7 @@
     "test:coverage": "vitest run --coverage",
     "market:sync": "tsx scripts/sync-candles.ts",
     "sandbox": "tsx scripts/sandbox.ts",
+    "strategy:run": "tsx scripts/run-strategy.ts",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
