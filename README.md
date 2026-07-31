@@ -82,12 +82,23 @@ strategies live in [`src/strategies/`](src/strategies/) (an SMA-cross reference
 module ships there); [`examples/`](examples/) holds a worked hypothesis
 pre-registration to copy.
 
-## Status
+## Status — v0.1
 
-Early. This is the **foundation release**: the statistical harness (tested),
-the core contracts (strategy / exchange / agent), the methodology workspace,
-and the app shell. Market-data ingestion, the sandbox engine, and the agent
-runner are being ported next — see the [roadmap issues](https://github.com/MiraWision/midas-ai/issues).
+Everything below works today, end to end:
+
+| Piece | Surface |
+|---|---|
+| Statistical core (permutation event study) | `src/core/research` · 13 tests |
+| Candle sync + universe (Kraken USDC spot) | `pnpm market:sync` |
+| Sandbox paper trading (pessimistic fills) | `pnpm sandbox` + `/sandbox` page |
+| Strategy contract + lookahead-safe replay + two-stage evaluation | `pnpm strategy:run` |
+| Strategy registry with sidebar pinning | `/strategies` |
+| Research workspace (queue, ledger, findings) | `research/` + `/research` page |
+| Agent on rails (Claude Code, scoped permissions, budget) | `pnpm research:iterate` |
+
+Not in v0.1 by design: live order execution (sandbox-first stance — see the
+disclaimer), deep historical backfill beyond venue limits, and trainable
+strategy fitting. Tracked in the [issues](https://github.com/MiraWision/midas-ai/issues).
 
 ## Safety & disclaimer
 
