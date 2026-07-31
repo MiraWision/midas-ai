@@ -9,8 +9,8 @@
  * worked pre-registration.
  */
 
-import type { StrategyContext, StrategyModule, StrategySignal } from '../../src/core/strategy/types';
-import { CANDLE_INTERVAL_MS } from '../../src/core/exchange/types';
+import type { StrategyContext, StrategyModule, StrategySignal } from '@/core/strategy/types';
+import { CANDLE_INTERVAL_MS } from '@/core/exchange/types';
 
 export interface SmaCrossParams extends Record<string, unknown> {
   fastBars: number;

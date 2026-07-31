@@ -155,6 +155,80 @@ a {
   padding: 1px 7px;
 }
 
+.mw-nav-section {
+  margin: 14px 10px 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.mw-nav-sub {
+  padding-left: 14px;
+}
+
+.mw-nav-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--green);
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.mw-strategy-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mw-strategy-row + .mw-strategy-row {
+  margin-top: 0;
+}
+
+.mw-strategy-name {
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.mw-strategy-name:hover {
+  color: var(--green);
+}
+
+.mw-strategy-meta {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.mw-pin-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.mw-pin-button:hover {
+  border-color: var(--green-border);
+  color: var(--text-primary);
+}
+
+.mw-pin-button[data-pinned='true'] {
+  border-color: var(--green-border);
+  background: var(--green-dim);
+  color: var(--green);
+}
+
 .mw-sidebar-footer {
   margin-top: auto;
   padding: 0 8px;

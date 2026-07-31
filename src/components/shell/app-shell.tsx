@@ -7,11 +7,16 @@ import {
   IconLayoutDashboard,
   IconRobot,
   IconChartCandle,
+  IconChartLine,
   IconBook2,
 } from '@tabler/icons-react';
 
+import { STRATEGIES } from '@/strategies';
+import { usePinnedStrategies } from './use-pinned-strategies';
+
 const NAV = [
   { href: '/', label: 'Dashboard', icon: IconLayoutDashboard, ready: true },
+  { href: '/strategies', label: 'Strategies', icon: IconChartLine, ready: true },
   { href: '/research', label: 'Research', icon: IconFlask2, ready: false },
   { href: '/sandbox', label: 'Sandbox', icon: IconChartCandle, ready: false },
   { href: '/agent', label: 'Agent', icon: IconRobot, ready: false },
@@ -19,6 +24,10 @@ const NAV = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { pinned } = usePinnedStrategies();
+  const pinnedStrategies = pinned
+    .map((id) => STRATEGIES.find((s) => s.id === id))
+    .filter((s): s is (typeof STRATEGIES)[number] => s !== undefined);
 
   return (
     <div className="mw-shell">
@@ -35,6 +44,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {!ready && <span className="mw-soon">soon</span>}
             </Link>
           ))}
+          {pinnedStrategies.length > 0 && (
+            <>
+              <div className="mw-nav-section">Pinned</div>
+              {pinnedStrategies.map((strategy) => (
+                <Link
+                  key={strategy.id}
+                  href={`/strategies/${strategy.id}`}
+                  className="mw-nav-item mw-nav-sub"
+                  data-active={pathname === `/strategies/${strategy.id}`}
+                >
+                  <span className="mw-nav-dot" />
+                  {strategy.name.replace(/ \(.*\)$/, '')}
+                </Link>
+              ))}
+            </>
+          )}
           <a
             className="mw-nav-item"
             href="https://github.com/MiraWision/midas-ai#readme"

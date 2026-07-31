@@ -77,8 +77,10 @@ pnpm test                   # the statistical core, verified
 pnpm dev                    # http://localhost:3000
 ```
 
-See [`docs/self-hosting.md`](docs/self-hosting.md) for the full setup and
-[`examples/`](examples/) for a reference strategy and a worked hypothesis.
+See [`docs/self-hosting.md`](docs/self-hosting.md) for the full setup. Your
+strategies live in [`src/strategies/`](src/strategies/) (an SMA-cross reference
+module ships there); [`examples/`](examples/) holds a worked hypothesis
+pre-registration to copy.
 
 ## Status
 
