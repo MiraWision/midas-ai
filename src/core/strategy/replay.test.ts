@@ -10,7 +10,7 @@ import type { StrategyModule } from './types';
 const H = CANDLE_INTERVAL_MS['1h'];
 const T0 = Date.UTC(2026, 0, 1);
 
-function series(closes: number[], symbol = 'AAAUSDC'): Candle[] {
+function series(closes: number[]): Candle[] {
   return closes.map((close, i) => ({
     openTimeMs: T0 + i * H,
     open: close,

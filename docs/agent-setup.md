@@ -1,9 +1,25 @@
-# Agent on rails (roadmap preview)
+# Agent on rails
 
-MidasAI is designed to run a coding agent — e.g. [Claude Code](https://claude.com/claude-code) —
-as an autonomous researcher over your hypothesis queue. The runner is being
-ported; this document describes the contract so you know what's coming and
-what to build against (`src/core/agent/types.ts`).
+MidasAI can run a coding agent — [Claude Code](https://claude.com/claude-code)
+ships as the first adapter — as an autonomous researcher over your hypothesis
+queue.
+
+## Setup
+
+1. Install Claude Code and authenticate it on this machine (`claude` must work
+   from your shell).
+2. Make sure candles are synced (`pnpm market:sync`) and your queue has a
+   hypothesis with a kill criterion (`research/hypotheses/queue.md`).
+3. Run one budgeted iteration:
+
+```bash
+pnpm research:iterate -- --model sonnet --budget-usd 5
+```
+
+One iteration = one hypothesis, end to end. `--resume <sessionId>` continues a
+run that hit the wall-clock ceiling; `--dry-run` just inspects the queue.
+Schedule it (cron) for unattended iterations if you like — each run is capped
+by budget and timeout.
 
 ## The trust model
 
