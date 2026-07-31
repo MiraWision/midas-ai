@@ -26,6 +26,21 @@ OHLC endpoint serves only the ~720 most recent candles per interval (≈30 days
 of 1h). Deep history must be accumulated by a scheduled sync or built from the
 paginated Trades endpoint / Kraken's official CSV dumps.
 
+### Candle sync
+
+```bash
+pnpm market:sync -- --refresh-universe   # first run: pick top-30 USDC markets, sync 15m+1h
+pnpm market:sync                         # incremental; run this on a schedule
+```
+
+Universe refreshes only ever ADD markets — disabling a symbol (set
+`enabled = false` in `tracked_markets`) is an operator decision that
+automation never reverts. Schedule the sync every 15 minutes (cron example):
+
+```
+*/15 * * * * cd /path/to/midas-ai && pnpm market:sync >> /tmp/midas-sync.log 2>&1
+```
+
 ## Live trading (opt-in, at your own risk)
 
 MidasAI is sandbox-first and ships with **no live execution enabled**. When

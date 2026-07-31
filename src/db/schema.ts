@@ -1,4 +1,4 @@
-import { bigint, doublePrecision, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { bigint, boolean, doublePrecision, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 
 /**
  * Closed OHLCV candles, the platform's single source of price truth.
@@ -22,4 +22,19 @@ export const marketCandles = pgTable(
   (table) => [
     uniqueIndex('market_candles_unique').on(table.source, table.symbol, table.interval, table.openTimeMs),
   ]
+);
+
+/**
+ * The tracked universe. Universe refreshes only ADD rows; `enabled` is the
+ * operator's switch and is never flipped back on by automation.
+ */
+export const trackedMarkets = pgTable(
+  'tracked_markets',
+  {
+    source: text('source').notNull(),
+    symbol: text('symbol').notNull(),
+    enabled: boolean('enabled').notNull().default(true),
+    addedAt: timestamp('added_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex('tracked_markets_unique').on(table.source, table.symbol)]
 );

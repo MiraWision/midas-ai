@@ -163,6 +163,38 @@ export class KrakenMarketData implements MarketDataAdapter {
     };
   }
 
+  /**
+   * 24h stats for every listed market in one call (used for universe
+   * selection). Quote volume is approximated as base volume × 24h VWAP —
+   * Kraken's ticker reports base volume only.
+   */
+  async fetch24hStats(quote?: string): Promise<Map<string, { quoteVolume24h: number; lastPrice: number }>> {
+    if (!this.marketsBySymbol) await this.listMarkets();
+    const byVenueSymbol = new Map<string, MarketRef>();
+    for (const market of this.marketsBySymbol?.values() ?? []) {
+      byVenueSymbol.set(market.venueSymbol, market);
+    }
+
+    const result = asRecord(await this.fetchJson('/0/public/Ticker'));
+    const stats = new Map<string, { quoteVolume24h: number; lastPrice: number }>();
+    for (const [venueSymbol, row] of Object.entries(result ?? {})) {
+      const market = byVenueSymbol.get(venueSymbol);
+      if (!market) continue;
+      if (quote && market.quote !== quote) continue;
+      const data = asRecord(row);
+      if (!data) continue;
+      const baseVolume24h = parseTickerNumber(data.v, 1);
+      const vwap24h = parseTickerNumber(data.p, 1);
+      const lastPrice = parseTickerNumber(data.c, 0);
+      if (!Number.isFinite(baseVolume24h) || !Number.isFinite(vwap24h)) continue;
+      stats.set(market.symbol, {
+        quoteVolume24h: baseVolume24h * vwap24h,
+        lastPrice: Number.isFinite(lastPrice) ? lastPrice : 0,
+      });
+    }
+    return stats;
+  }
+
   private async resolveMarket(symbol: string): Promise<MarketRef> {
     if (!this.marketsBySymbol) await this.listMarkets();
     const market = this.marketsBySymbol?.get(symbol);
@@ -225,4 +257,10 @@ export class KrakenMarketData implements MarketDataAdapter {
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   return value as Record<string, unknown>;
+}
+
+/** Kraken ticker fields are arrays of strings, e.g. v = [volToday, vol24h]. */
+function parseTickerNumber(value: unknown, index: number): number {
+  const raw = Array.isArray(value) ? value[index] : value;
+  return typeof raw === 'string' ? Number.parseFloat(raw) : NaN;
 }

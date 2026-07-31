@@ -7,7 +7,8 @@ services:
       POSTGRES_PASSWORD: midas
       POSTGRES_DB: midas
     ports:
-      - '5432:5432'
+      # Override with MIDAS_DB_PORT in .env if 5432 is taken on your machine.
+      - '${MIDAS_DB_PORT:-5432}:5432'
     volumes:
       - midas-pgdata:/var/lib/postgresql/data
 
