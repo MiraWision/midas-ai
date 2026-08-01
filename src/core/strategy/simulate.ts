@@ -27,7 +27,7 @@ import type { StrategySignal } from './types';
 
 export interface SimulationOptions {
   interval: CandleInterval;
-  /** Bars to hold each position before exiting. */
+  /** Fallback holding period for signals that carry no horizonMs of their own. */
   holdBars: number;
   /** Quote spent per entry. */
   quotePerTrade: number;
@@ -107,7 +107,10 @@ export function simulateSignals(
         });
         state = result.state;
         trades.push(result.trade);
-        const lot: OpenLot = { symbol, quantity, exitDueMs: fillBar.openTimeMs + options.holdBars * intervalMs };
+        // A signal's own horizon wins — for time-window strategies the exit
+        // time IS part of the signal; holdBars is only the fallback.
+        const holdMs = event.signal!.horizonMs ?? options.holdBars * intervalMs;
+        const lot: OpenLot = { symbol, quantity, exitDueMs: fillBar.openTimeMs + holdMs };
         queue.push({ timestampMs: lot.exitDueMs, kind: 'EXIT', lot });
         queue.sort((a, b) => a.timestampMs - b.timestampMs);
         lots.push(lot);

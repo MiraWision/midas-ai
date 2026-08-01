@@ -15,7 +15,13 @@ import { and, asc, eq } from 'drizzle-orm';
 
 import type { Candle, CandleInterval } from '../src/core/exchange/types';
 import { CANDLE_INTERVAL_MS } from '../src/core/exchange/types';
-import { buildPriceSeries, runEventStudy, type ResearchEvent } from '../src/core/research/event-study';
+import {
+  buildPriceSeries,
+  runEventStudy,
+  runPerEventHorizonEdgeTest,
+  type HorizonedEvent,
+  type ResearchEvent,
+} from '../src/core/research/event-study';
 import { replaySignals } from '../src/core/strategy/replay';
 import { simulateSignals } from '../src/core/strategy/simulate';
 import { db } from '../src/db';
@@ -94,6 +100,22 @@ async function main(): Promise<void> {
   console.log(`\n[stage 1 — event study] n=${edge.n} meanNet=${edge.meanNetReturnPct.toFixed(3)}% t=${edge.tStat.toFixed(2)} permP=${edge.permPValue.toFixed(3)}`);
   if (edge.permPValue >= 0.05) {
     console.log('  → NOT distinguishable from random timing at p<0.05. Treat stage 2 as descriptive only.');
+  }
+
+  // Signals carrying their own horizons get the per-event-horizon edge test —
+  // for time-window strategies this is the primary stage-1 number.
+  if (signals.some((s) => typeof s.horizonMs === 'number')) {
+    const horizoned: HorizonedEvent[] = signals.map((s) => ({
+      timestampMs: s.entryMs,
+      symbol: s.symbol,
+      direction: s.direction,
+      features: {},
+      horizonMs: s.horizonMs ?? horizonMs,
+    }));
+    const perEvent = runPerEventHorizonEdgeTest(seriesBySymbol, horizoned, { costPct });
+    console.log(
+      `[stage 1 — per-event horizons] n=${perEvent.n} meanNet=${perEvent.meanNetReturnPct.toFixed(3)}% t=${perEvent.tStat.toFixed(2)} permP=${perEvent.permPValue.toFixed(3)}`
+    );
   }
 
   // Stage 2 — sandbox simulation.

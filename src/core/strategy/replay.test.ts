@@ -77,6 +77,27 @@ describe('replaySignals', () => {
   });
 });
 
+describe('replaySignals — cadence', () => {
+  it('calls analyze only every analyzeEveryBars steps', () => {
+    let calls = 0;
+    const counter: StrategyModule = {
+      id: 'counter',
+      name: 'counter',
+      defaultParams: {},
+      analyze() {
+        calls += 1;
+        return [];
+      },
+    };
+    replaySignals(counter, {}, new Map([['AAAUSDC', series(Array(50).fill(100))]]), {
+      interval: '1h',
+      warmupBars: 0,
+      analyzeEveryBars: 5,
+    });
+    expect(calls).toBe(10);
+  });
+});
+
 describe('simulateSignals', () => {
   const sandbox = { quote: 'USDC', startingCash: 10_000, feeBps: 0, slippageBps: 0 };
 
@@ -96,6 +117,20 @@ describe('simulateSignals', () => {
     expect(result.trades[0]!.fillPrice).toBeCloseTo(100);
     expect(result.trades[1]!.fillPrice).toBeCloseTo(120);
     expect(result.totalReturnPct).toBeCloseTo(((1_000 / 100) * 20) / 100, 3); // +200 on 10k
+  });
+
+  it('honors a per-signal horizonMs over the holdBars fallback', () => {
+    // Price 100, jumps to 130 at bar 13. Signal's own horizon = 2 bars → exit
+    // at bar 12 open (100). With the 8-bar fallback it would exit at 120+.
+    const closes = [...Array(13).fill(100), ...Array(10).fill(130)];
+    const candles = new Map([['AAAUSDC', series(closes)]]);
+    const result = simulateSignals(
+      [{ symbol: 'AAAUSDC', direction: 'LONG', entryMs: T0 + 10 * H, horizonMs: 2 * H }],
+      candles,
+      { interval: '1h', holdBars: 8, quotePerTrade: 1_000, sandbox }
+    );
+    expect(result.trades).toHaveLength(2);
+    expect(result.trades[1]!.fillPrice).toBeCloseTo(100); // exited before the jump
   });
 
   it('skips SHORT signals and counts them', () => {

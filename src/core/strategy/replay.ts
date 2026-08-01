@@ -17,6 +17,13 @@ export interface ReplayOptions {
   interval: CandleInterval;
   /** Bars to skip before the first analyze call (indicator warmup). */
   warmupBars: number;
+  /**
+   * Call analyze() every N closed bars (default 1). Strategies that re-fit
+   * heavy state on a schedule (weekly re-analysis, session profiles) should
+   * replay at the cadence they run live — the FreqAI lesson: backtest the
+   * operational loop, not an idealized every-bar fit.
+   */
+  analyzeEveryBars?: number;
 }
 
 export interface ReplayResult {
@@ -52,7 +59,8 @@ export function replaySignals<P extends Record<string, unknown>>(
   const signals: StrategySignal[] = [];
   let steps = 0;
 
-  for (let t = options.warmupBars; t < times.length; t += 1) {
+  const cadence = Math.max(1, Math.floor(options.analyzeEveryBars ?? 1));
+  for (let t = options.warmupBars; t < times.length; t += cadence) {
     const nowMs = times[t]! + intervalMs; // the bar at times[t] has just closed
     const visible = new Map<string, readonly Candle[]>();
     for (const [symbol, candles] of candlesBySymbol) {

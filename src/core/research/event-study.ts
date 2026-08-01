@@ -373,6 +373,71 @@ function featureTest(
   };
 }
 
+/* ------------------------- per-event-horizon edge test --------------------- */
+
+export interface HorizonedEvent extends ResearchEvent {
+  /** This event's own measurement horizon (exit time − entry time). */
+  horizonMs: number;
+}
+
+/**
+ * Edge test for signal streams whose horizon is PART of the signal
+ * (time-window/seasonality strategies): each event is measured over its own
+ * horizon, and the null samples random entry TIMES while preserving both the
+ * direction mix and the horizon distribution — so neither drift nor
+ * horizon-length choices can masquerade as timing skill.
+ */
+export function runPerEventHorizonEdgeTest(
+  seriesBySymbol: Map<string, PriceSeries>,
+  events: HorizonedEvent[],
+  paramsInput?: Partial<Pick<EventStudyParams, 'costPct' | 'permIterations' | 'permSeed'>>
+): EdgeResult & { measured: number } {
+  const params = { ...DEFAULT_EVENT_STUDY_PARAMS, ...paramsInput };
+  const rand = mulberry32(params.permSeed);
+
+  const measured: Array<{ event: HorizonedEvent; ret: number }> = [];
+  for (const event of events) {
+    const series = seriesBySymbol.get(event.symbol);
+    if (!series) continue;
+    const ret = forwardReturnPct(series, event.timestampMs, event.horizonMs, event.direction, params.costPct);
+    if (ret !== null) measured.push({ event, ret });
+  }
+  const returns = measured.map((row) => row.ret);
+  const observedMean = mean(returns);
+
+  let ge = 0;
+  for (let iter = 0; iter < params.permIterations; iter += 1) {
+    const nullReturns: number[] = [];
+    for (const row of measured) {
+      const series = seriesBySymbol.get(row.event.symbol);
+      if (!series) continue;
+      const first = series.times[0]!;
+      const last = series.times[series.times.length - 1]!;
+      const span = last - row.event.horizonMs - first;
+      if (span <= 0) continue;
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        const t = first + rand() * span;
+        const ret = forwardReturnPct(series, t, row.event.horizonMs, row.event.direction, params.costPct);
+        if (ret !== null) {
+          nullReturns.push(ret);
+          break;
+        }
+      }
+    }
+    if (nullReturns.length > 0 && mean(nullReturns) >= observedMean) ge += 1;
+  }
+
+  return {
+    horizonLabel: 'per-event',
+    n: returns.length,
+    meanNetReturnPct: observedMean,
+    stdNetReturnPct: std(returns),
+    tStat: tStat(returns),
+    permPValue: params.permIterations > 0 ? ge / params.permIterations : 1,
+    measured: returns.length,
+  };
+}
+
 /* --------------------------------- top level ------------------------------ */
 
 export interface HorizonReport {

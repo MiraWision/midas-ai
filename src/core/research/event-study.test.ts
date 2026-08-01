@@ -6,6 +6,7 @@ import {
   HOUR_MS,
   mulberry32,
   runEventStudy,
+  runPerEventHorizonEdgeTest,
   type ResearchCandle,
   type ResearchEvent,
 } from './event-study';
@@ -205,6 +206,41 @@ describe('runEventStudy — feature test', () => {
     const feature = report.horizons[0]!.features.find((f) => f.feature === 'noise');
     expect(feature).toBeDefined();
     expect(feature!.permPValue).toBeGreaterThan(0.1);
+  });
+});
+
+describe('runPerEventHorizonEdgeTest', () => {
+  it("detects an edge measured at each event's own horizon", () => {
+    // Bumps planted at DIFFERENT distances per event; each event's horizonMs
+    // points exactly at its bump, so per-event measurement catches what a
+    // single fixed horizon would smear out.
+    const eventBars = [40, 80, 120, 160, 200, 240, 280, 320, 360, 400, 440, 480];
+    const bumps = new Map<number, number>();
+    const events: Array<ResearchEvent & { horizonMs: number }> = [];
+    for (let i = 0; i < eventBars.length; i += 1) {
+      const bar = eventBars[i]!;
+      const distanceBars = 2 + (i % 4) * 2; // 2,4,6,8 bars
+      bumps.set(bar + distanceBars, 1.5);
+      events.push({ ...eventAtBar(bar, 'LONG'), horizonMs: distanceBars * BAR_MS });
+    }
+    const seriesMap = new Map([['TEST', buildPriceSeries('TEST', buildSeries({ bars: 600, bumps, noisePct: 0.04 }))]]);
+
+    const result = runPerEventHorizonEdgeTest(seriesMap, events, { costPct: 0.1, permIterations: 200, permSeed: 3 });
+    expect(result.n).toBe(events.length);
+    expect(result.meanNetReturnPct).toBeGreaterThan(1);
+    expect(result.permPValue).toBeLessThan(0.05);
+  });
+
+  it('reports no edge on noise and stays deterministic', () => {
+    const seriesMap = new Map([['TEST', buildPriceSeries('TEST', buildSeries({ bars: 600, noisePct: 0.06 }))]]);
+    const events = [40, 90, 140, 190, 240, 290, 340, 390].map((b) => ({
+      ...eventAtBar(b, 'LONG' as const),
+      horizonMs: 4 * BAR_MS,
+    }));
+    const a = runPerEventHorizonEdgeTest(seriesMap, events, { costPct: 0.1, permIterations: 200, permSeed: 3 });
+    const b = runPerEventHorizonEdgeTest(seriesMap, events, { costPct: 0.1, permIterations: 200, permSeed: 3 });
+    expect(a.permPValue).toBeGreaterThan(0.1);
+    expect(b).toEqual(a);
   });
 });
 
