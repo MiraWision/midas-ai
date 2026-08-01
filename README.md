@@ -71,14 +71,19 @@ Every experiment passes through these gates or it doesn't count:
 git clone https://github.com/MiraWision/midas-ai.git
 cd midas-ai
 pnpm install
-pnpm midas:setup            # env + Postgres + schema + first market sync + tests
-pnpm dev                    # http://localhost:3000
+pnpm midas:setup            # env + Postgres + schema + first market sync + tests + CLI
 ```
 
-Updating later is one command — your strategies and research work survive it:
+Setup installs the `midas` command (a wrapper in `~/.local/bin`), and from
+then on everything is one word from any directory:
 
 ```bash
-pnpm midas:update
+midas dev                   # http://localhost:3000
+midas sync                  # accumulate candles (schedule it)
+midas sandbox list          # paper trading
+midas run --strategy sma-cross --interval 1h
+midas update                # pull the next version — your files survive it
+midas help
 ```
 
 See [`docs/self-hosting.md`](docs/self-hosting.md) for the full setup. Your

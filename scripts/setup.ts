@@ -11,7 +11,9 @@
  */
 
 import { execSync, spawnSync } from 'node:child_process';
-import { copyFileSync, existsSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join, resolve } from 'node:path';
 
 const ARGV = process.argv.slice(2).filter((token) => token !== '--');
 const skipDb = ARGV.includes('--skip-db');
@@ -77,12 +79,26 @@ async function main(): Promise<void> {
   step('Verify');
   run('pnpm test');
 
+  step('midas CLI');
+  // A plain wrapper in ~/.local/bin — no pnpm/npm global config required.
+  const binDir = join(homedir(), '.local', 'bin');
+  const wrapper = join(binDir, 'midas');
+  mkdirSync(binDir, { recursive: true });
+  writeFileSync(wrapper, `#!/bin/sh\nexec node "${resolve('bin/midas.mjs')}" "$@"\n`, { mode: 0o755 });
+  const onPath = (process.env.PATH ?? '').split(':').includes(binDir);
+  console.log(`  installed ${wrapper}`);
+  if (!onPath) {
+    console.log('  NOTE: ~/.local/bin is not on your PATH — add this to your shell profile:');
+    console.log('    export PATH="$HOME/.local/bin:$PATH"');
+  }
+
   console.log(`
 [32m✓ MidasAI is ready.[0m
 
-  pnpm dev             → http://localhost:3000
-  pnpm market:sync     → run on a schedule to accumulate history
-  pnpm midas:update    → pull the next version any time
+  midas dev        → http://localhost:3000
+  midas sync       → run on a schedule to accumulate history
+  midas update     → pull the next version any time
+  midas help       → everything else
 
 Your files (src/strategies/, research/) survive updates — see docs/self-hosting.md.`);
 }

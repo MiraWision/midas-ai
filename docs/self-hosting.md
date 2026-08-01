@@ -19,10 +19,15 @@ pnpm dev                    # http://localhost:3000
 Set `DATABASE_URL` in `.env` and use `pnpm midas:setup -- --skip-db`. If port
 5432 is taken, set `MIDAS_DB_PORT` (and the port in `DATABASE_URL`) in `.env`.
 
+Setup also installs the **`midas` CLI** — a wrapper at `~/.local/bin/midas`
+that runs against this checkout from any directory (`midas help` lists every
+command; make sure `~/.local/bin` is on your PATH). The `pnpm` scripts keep
+working if you prefer them.
+
 ## Updating
 
 ```bash
-pnpm midas:update
+midas update        # or: pnpm midas:update
 ```
 
 One command: fetches the new version, shows what changed, merges, installs
