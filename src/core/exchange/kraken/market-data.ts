@@ -195,6 +195,36 @@ export class KrakenMarketData implements MarketDataAdapter {
     return stats;
   }
 
+  /**
+   * One page of raw trade history (max ~1000 rows), ascending. `sinceNs` is
+   * Kraken's nanosecond cursor; pass the returned `lastNs` to continue.
+   * This is the deep-backfill primitive — OHLC caps at ~720 candles, trades
+   * go back years.
+   */
+  async fetchTradesPage(
+    symbol: string,
+    sinceNs: string
+  ): Promise<{ trades: Array<{ timeMs: number; price: number; volume: number }>; lastNs: string }> {
+    const market = await this.resolveMarket(symbol);
+    const result = asRecord(await this.fetchJson('/0/public/Trades', { pair: market.venueSymbol, since: sinceNs }));
+    if (!result) throw new Error(`Kraken Trades: empty result for ${symbol}`);
+    const lastNs = typeof result.last === 'string' ? result.last : sinceNs;
+    const rows = Object.entries(result).find(([key]) => key !== 'last')?.[1];
+    const trades: Array<{ timeMs: number; price: number; volume: number }> = [];
+    if (Array.isArray(rows)) {
+      for (const row of rows) {
+        if (!Array.isArray(row) || row.length < 3) continue;
+        const price = Number.parseFloat(String(row[0]));
+        const volume = Number.parseFloat(String(row[1]));
+        const timeMs = Number(row[2]) * 1000;
+        if (Number.isFinite(price) && Number.isFinite(volume) && Number.isFinite(timeMs)) {
+          trades.push({ timeMs, price, volume });
+        }
+      }
+    }
+    return { trades, lastNs };
+  }
+
   private async resolveMarket(symbol: string): Promise<MarketRef> {
     if (!this.marketsBySymbol) await this.listMarkets();
     const market = this.marketsBySymbol?.get(symbol);

@@ -25,6 +25,23 @@ export const marketCandles = pgTable(
 );
 
 /**
+ * Resumable deep-backfill progress (Kraken Trades pagination). One cursor per
+ * (source, symbol); a multi-hour backfill can be interrupted and re-run.
+ */
+export const backfillCursors = pgTable(
+  'backfill_cursors',
+  {
+    source: text('source').notNull(),
+    symbol: text('symbol').notNull(),
+    cursorNs: text('cursor_ns').notNull(),
+    /** Start of the covered range — a request from EARLIER than this restarts. */
+    startNs: text('start_ns').notNull().default('0'),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex('backfill_cursors_unique').on(table.source, table.symbol)]
+);
+
+/**
  * Sandbox accounts. State (cash, positions) is never stored — it is replayed
  * from sandbox_trades, which is the single source of truth (see
  * src/core/sandbox/engine.ts).

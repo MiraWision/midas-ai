@@ -63,6 +63,22 @@ automation never reverts. Schedule the sync every 15 minutes (cron example):
 */15 * * * * cd /path/to/midas-ai && pnpm market:sync >> /tmp/midas-sync.log 2>&1
 ```
 
+### Deep backfill (years of history)
+
+The sync only accumulates forward. To build deep history, aggregate candles
+from Kraken's public trade tape:
+
+```bash
+midas backfill --symbol BTCUSDC --from 2024-01-01
+midas backfill --from 2024-06-01          # whole enabled universe
+```
+
+Set expectations: ~1000 trades per page at ~1 request/second means a liquid
+pair takes **hours** per year of history (illiquid pairs: minutes). Progress
+cursors persist in the database after every page, so Ctrl-C and re-running
+continues where it stopped. Where backfill overlaps the synced window, the
+venue's own OHLC rows win.
+
 ## Live trading (opt-in, at your own risk)
 
 MidasAI is sandbox-first and ships with **no live execution enabled**. When
