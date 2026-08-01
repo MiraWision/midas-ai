@@ -8,3 +8,4 @@ research/knowledge/** merge=midas-user
 research/reports/** merge=midas-user
 research/scripts/** merge=midas-user
 src/strategies/index.ts merge=midas-user
+src/datasets/index.ts merge=midas-user

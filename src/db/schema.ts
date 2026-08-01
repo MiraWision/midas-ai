@@ -24,6 +24,26 @@ export const marketCandles = pgTable(
   ]
 );
 
+/** Build metadata per dataset (the rows live in dataset_rows). */
+export const datasetBuilds = pgTable('dataset_builds', {
+  datasetId: text('dataset_id').primaryKey(),
+  builtAt: timestamp('built_at', { withTimezone: true }).notNull().defaultNow(),
+  rowCount: bigint('row_count', { mode: 'number' }).notNull(),
+  paramsJson: text('params_json').notNull(),
+});
+
+/** Materialized dataset rows; a rebuild replaces all rows of its dataset. */
+export const datasetRows = pgTable(
+  'dataset_rows',
+  {
+    datasetId: text('dataset_id').notNull(),
+    key: text('key').notNull(),
+    timestampMs: bigint('timestamp_ms', { mode: 'number' }).notNull(),
+    valuesJson: text('values_json').notNull(),
+  },
+  (table) => [uniqueIndex('dataset_rows_unique').on(table.datasetId, table.key, table.timestampMs)]
+);
+
 /**
  * Resumable deep-backfill progress (Kraken Trades pagination). One cursor per
  * (source, symbol); a multi-hour backfill can be interrupted and re-run.

@@ -23,6 +23,7 @@
     "test:coverage": "vitest run --coverage",
     "market:sync": "tsx scripts/sync-candles.ts",
     "market:backfill": "tsx scripts/backfill-trades.ts",
+    "dataset": "tsx scripts/dataset.ts",
     "sandbox": "tsx scripts/sandbox.ts",
     "strategy:run": "tsx scripts/run-strategy.ts",
     "research:iterate": "tsx scripts/research-iterate.ts",

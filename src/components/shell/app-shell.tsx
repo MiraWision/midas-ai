@@ -8,6 +8,7 @@ import {
   IconRobot,
   IconChartCandle,
   IconChartLine,
+  IconTable,
   IconBook2,
 } from '@tabler/icons-react';
 
@@ -17,6 +18,7 @@ import { usePinnedStrategies } from './use-pinned-strategies';
 const NAV = [
   { href: '/', label: 'Dashboard', icon: IconLayoutDashboard, ready: true },
   { href: '/strategies', label: 'Strategies', icon: IconChartLine, ready: true },
+  { href: '/datasets', label: 'Datasets', icon: IconTable, ready: true },
   { href: '/research', label: 'Research', icon: IconFlask2, ready: true },
   { href: '/sandbox', label: 'Sandbox', icon: IconChartCandle, ready: true },
   { href: '/agent', label: 'Agent', icon: IconRobot, ready: true },

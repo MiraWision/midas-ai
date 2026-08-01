@@ -19,6 +19,7 @@ const COMMANDS = {
   update: { script: 'scripts/update.ts', help: 'pull the next version (your files survive)' },
   sync: { script: 'scripts/sync-candles.ts', help: 'sync candles for the tracked universe' },
   backfill: { script: 'scripts/backfill-trades.ts', help: 'deep history from trades (--from YYYY-MM-DD)' },
+  dataset: { script: 'scripts/dataset.ts', help: 'derived tables: list | build <id> | show <id>' },
   sandbox: { script: 'scripts/sandbox.ts', help: 'paper trading: create | list | order | status' },
   run: { script: 'scripts/run-strategy.ts', help: 'two-stage strategy evaluation (--strategy <id>)' },
   iterate: { script: 'scripts/research-iterate.ts', help: 'one budgeted agent research iteration' },
