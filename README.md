@@ -70,11 +70,15 @@ Every experiment passes through these gates or it doesn't count:
 ```bash
 git clone https://github.com/MiraWision/midas-ai.git
 cd midas-ai
-cp .env.example .env
-docker compose up -d db     # local Postgres
 pnpm install
-pnpm test                   # the statistical core, verified
+pnpm midas:setup            # env + Postgres + schema + first market sync + tests
 pnpm dev                    # http://localhost:3000
+```
+
+Updating later is one command — your strategies and research work survive it:
+
+```bash
+pnpm midas:update
 ```
 
 See [`docs/self-hosting.md`](docs/self-hosting.md) for the full setup. Your

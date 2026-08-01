@@ -22,7 +22,7 @@ const NAV = [
   { href: '/agent', label: 'Agent', icon: IconRobot, ready: true },
 ] as const;
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({ children, version }: { children: React.ReactNode; version: string }) {
   const pathname = usePathname();
   const { pinned } = usePinnedStrategies();
   const pinnedStrategies = pinned
@@ -70,7 +70,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             Docs
           </a>
         </nav>
-        <div className="mw-sidebar-footer">v0.1 · foundation</div>
+        <div className="mw-sidebar-footer">v{version}</div>
       </aside>
       <main className="mw-main">{children}</main>
     </div>

@@ -9,6 +9,8 @@
   },
   "private": true,
   "scripts": {
+    "midas:setup": "tsx scripts/setup.ts",
+    "midas:update": "tsx scripts/update.ts",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

@@ -5,19 +5,36 @@
 - Node.js 22+, pnpm 9+
 - Docker (for the bundled Postgres) or your own Postgres 15+
 
-## Setup
+## Setup (once)
 
 ```bash
 git clone https://github.com/MiraWision/midas-ai.git
 cd midas-ai
-cp .env.example .env        # defaults work with the bundled Postgres
-docker compose up -d db
 pnpm install
-pnpm db:push                # create tables
+pnpm midas:setup            # .env + Postgres + schema + first market sync + tests
 pnpm dev                    # http://localhost:3000
 ```
 
-Verify the statistical core on your machine any time with `pnpm test`.
+`midas:setup` is idempotent — re-run it any time. Running your own Postgres?
+Set `DATABASE_URL` in `.env` and use `pnpm midas:setup -- --skip-db`. If port
+5432 is taken, set `MIDAS_DB_PORT` (and the port in `DATABASE_URL`) in `.env`.
+
+## Updating
+
+```bash
+pnpm midas:update
+```
+
+One command: fetches the new version, shows what changed, merges, installs
+dependencies, applies additive schema changes, and runs the test suite on
+your machine. **Your files survive updates**: `src/strategies/` and the
+`research/` workspace are declared user-owned (`.gitattributes` + a merge
+driver the updater configures), so on any conflict your version wins.
+Committing your local work to your clone before updating is good hygiene but
+not required — untracked files are never touched.
+
+Schema changes between versions are additive; your candles, sandbox accounts
+and research history are never dropped by an update.
 
 ## Market data
 

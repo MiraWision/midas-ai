@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { AppShell } from '@/components/shell/app-shell';
+import packageJson from '../../package.json';
 
 import '@/styles/globals.css';
 
@@ -14,7 +15,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body>
-        <AppShell>{children}</AppShell>
+        <AppShell version={packageJson.version}>{children}</AppShell>
       </body>
     </html>
   );

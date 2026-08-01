@@ -1,0 +1,10 @@
+# User-owned paths: on `pnpm midas:update`, merge conflicts here always keep
+# the LOCAL version (merge driver "midas-user" is configured by the update
+# script as `git config merge.midas-user.driver true`). Upstream never needs
+# to win in these files — they hold the operator's own research and strategies.
+research/hypotheses/queue.md merge=midas-user
+research/hypotheses/ledger.md merge=midas-user
+research/knowledge/** merge=midas-user
+research/reports/** merge=midas-user
+research/scripts/** merge=midas-user
+src/strategies/index.ts merge=midas-user
