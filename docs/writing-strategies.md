@@ -52,3 +52,15 @@ existing is not evidence.
 
 Your `src/strategies/` files are user-owned: `midas update` never overwrites
 them, and nothing outside your clone ever sees them.
+
+## Truly private strategies
+
+`src/strategies/user/` is **gitignored by the platform** — modules there can
+never be committed, even by accident. Put anything proprietary in that
+directory and register it in `src/strategies/index.ts` (a local, uncommitted
+edit that `midas update` preserves). Heavy strategies that re-fit on a
+schedule should be evaluated at their operational cadence:
+
+```bash
+midas run --strategy my-heavy-strategy --interval 15m --analyze-every 672 --warmup-bars 17472
+```

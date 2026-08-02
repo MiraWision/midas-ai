@@ -70,11 +70,15 @@ async function main(): Promise<void> {
   const barCounts = [...candlesBySymbol.values()].map((c) => c.length);
   console.log(`[data] ${candlesBySymbol.size} symbols, ${Math.min(...barCounts)}–${Math.max(...barCounts)} ${interval} bars each`);
 
-  // Replay — no lookahead, enforced by slicing.
+  // Replay — no lookahead, enforced by slicing. Strategies whose params are
+  // not bar-denominated (weekly re-fits etc.) pass --warmup-bars explicitly;
+  // --analyze-every replays at the operational cadence instead of every bar.
   const params = strategy.defaultParams;
+  const warmupBars = Number(arg('warmup-bars')) || Math.max(...Object.values(params).map((v) => (typeof v === 'number' ? v : 0)), 0) + 1;
   const { signals, steps } = replaySignals(strategy, params, candlesBySymbol, {
     interval,
-    warmupBars: Math.max(...Object.values(params).map((v) => (typeof v === 'number' ? v : 0)), 0) + 1,
+    warmupBars,
+    analyzeEveryBars: Number(arg('analyze-every')) || 1,
   });
   console.log(`[replay] ${signals.length} signals from ${steps} steps (params ${JSON.stringify(params)})`);
   if (signals.length === 0) {

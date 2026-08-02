@@ -26,6 +26,11 @@ yarn-error.log*
 .env
 .env*.local
 
+# private modules — YOUR strategies/datasets that must never leave this
+# machine live here; register them in the (user-owned) index.ts files
+src/strategies/user/
+src/datasets/user/
+
 # python sidecars (if you add model-inference tooling)
 .venv/
 __pycache__/
