@@ -24,6 +24,39 @@ export const marketCandles = pgTable(
   ]
 );
 
+/**
+ * Autopilot instances: "this strategy with these params paper-trades this
+ * account" as configuration. Signals→orders happens in `midas autopilot tick`.
+ */
+export const autopilotInstances = pgTable('autopilot_instances', {
+  id: text('id').primaryKey(),
+  strategyId: text('strategy_id').notNull(),
+  paramsJson: text('params_json').notNull(),
+  /** JSON array of symbols; null = the whole enabled universe. */
+  symbolsJson: text('symbols_json'),
+  interval: text('interval').notNull(),
+  accountId: text('account_id').notNull(),
+  quotePerTrade: doublePrecision('quote_per_trade').notNull(),
+  fallbackHoldBars: bigint('fallback_hold_bars', { mode: 'number' }).notNull(),
+  enabled: boolean('enabled').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Open/closed autopilot lots — the scheduler's memory of what it holds. */
+export const autopilotLots = pgTable(
+  'autopilot_lots',
+  {
+    id: text('id').primaryKey(),
+    instanceId: text('instance_id').notNull(),
+    symbol: text('symbol').notNull(),
+    quantity: doublePrecision('quantity').notNull(),
+    exitDueMs: bigint('exit_due_ms', { mode: 'number' }).notNull(),
+    openedAt: timestamp('opened_at', { withTimezone: true }).notNull().defaultNow(),
+    closedAt: timestamp('closed_at', { withTimezone: true }),
+  },
+  (table) => [uniqueIndex('autopilot_lots_open_unique').on(table.instanceId, table.symbol, table.openedAt)]
+);
+
 /** Build metadata per dataset (the rows live in dataset_rows). */
 export const datasetBuilds = pgTable('dataset_builds', {
   datasetId: text('dataset_id').primaryKey(),

@@ -63,6 +63,24 @@ automation never reverts. Schedule the sync every 15 minutes (cron example):
 */15 * * * * cd /path/to/midas-ai && pnpm market:sync >> /tmp/midas-sync.log 2>&1
 ```
 
+### Autopilot (paper trading on a schedule)
+
+Once a strategy survives the gates, let it paper-trade itself:
+
+```bash
+midas autopilot add --strategy sma-cross --account <sandbox id> --interval 1h
+```
+
+Then cron a tick at your bar interval (it syncs its own candles first):
+
+```
+5 * * * * cd /path/to/midas-ai && pnpm autopilot tick >> /tmp/midas-autopilot.log 2>&1
+```
+
+One open lot per symbol per instance, exits honor each signal's `horizonMs`,
+SHORT signals are skipped (long-only sandbox). Everything it does is visible
+on /sandbox and in the account's trade log.
+
 ### Deep backfill (years of history)
 
 The sync only accumulates forward. To build deep history, aggregate candles

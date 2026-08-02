@@ -1,3 +1,4 @@
+import { listInstances, openLots } from '@/db/repositories/autopilot';
 import { readSandboxAccounts } from '@/server/sandbox-view';
 
 export const dynamic = 'force-dynamic';
@@ -12,9 +13,13 @@ function signed(value: number): string {
 
 export default async function SandboxPage() {
   let views: Awaited<ReturnType<typeof readSandboxAccounts>> = [];
+  let autopilot: Array<{ instance: Awaited<ReturnType<typeof listInstances>>[number]; lots: number }> = [];
   let dbError = false;
   try {
     views = await readSandboxAccounts();
+    autopilot = await Promise.all(
+      (await listInstances()).map(async (instance) => ({ instance, lots: (await openLots(instance.id)).length }))
+    );
   } catch {
     dbError = true;
   }
@@ -31,6 +36,47 @@ export default async function SandboxPage() {
         <div className="mw-card" style={{ marginTop: 24 }}>
           <p className="mw-empty">
             Database unavailable — start it with <code>docker compose up -d db</code>.
+          </p>
+        </div>
+      )}
+
+      {!dbError && autopilot.length > 0 && (
+        <div className="mw-card" style={{ marginTop: 24 }}>
+          <div className="mw-card-title">Autopilot instances</div>
+          <div className="mw-table-wrap">
+            <table className="mw-table">
+              <thead>
+                <tr>
+                  <th>id</th>
+                  <th>state</th>
+                  <th>strategy</th>
+                  <th>interval</th>
+                  <th>universe</th>
+                  <th>account</th>
+                  <th>open lots</th>
+                </tr>
+              </thead>
+              <tbody>
+                {autopilot.map(({ instance, lots }) => (
+                  <tr key={instance.id}>
+                    <td className="mw-mono">{instance.id}</td>
+                    <td>
+                      <span className="mw-status" data-tone={instance.enabled ? 'green' : undefined}>
+                        {instance.enabled ? 'ON' : 'off'}
+                      </span>
+                    </td>
+                    <td className="mw-mono">{instance.strategyId}</td>
+                    <td className="mw-mono">{instance.interval}</td>
+                    <td className="mw-mono">{instance.symbols?.join(', ') ?? 'universe'}</td>
+                    <td className="mw-mono">{instance.accountId}</td>
+                    <td className="mw-mono">{lots}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mw-empty" style={{ marginTop: 8 }}>
+            ticks run via <code>midas autopilot tick</code> — cron it at your bar interval
           </p>
         </div>
       )}
