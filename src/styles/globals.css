@@ -520,6 +520,106 @@ a {
   white-space: pre;
 }
 
+/* --------------------------------- charts --------------------------------- */
+
+.mw-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.mw-chart-grid {
+  stroke: var(--border-subtle);
+  stroke-width: 1;
+}
+
+.mw-chart-zero {
+  stroke: var(--text-tertiary);
+  stroke-width: 1;
+}
+
+.mw-chart-label {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.mw-candle-up line,
+.mw-candle-up rect {
+  stroke: var(--green);
+}
+
+.mw-candle-up rect {
+  fill: var(--green);
+}
+
+.mw-candle-down line,
+.mw-candle-down rect {
+  stroke: var(--red);
+}
+
+.mw-candle-down rect {
+  fill: var(--red);
+}
+
+.mw-marker-long {
+  fill: var(--green);
+  stroke: var(--bg-base);
+  stroke-width: 1;
+}
+
+.mw-marker-short {
+  fill: var(--red);
+  stroke: var(--bg-base);
+  stroke-width: 1;
+}
+
+.mw-bar-pos {
+  fill: var(--green);
+  opacity: 0.75;
+}
+
+.mw-bar-neg {
+  fill: var(--red);
+  opacity: 0.75;
+}
+
+.mw-chart-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.mw-chart-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+.mw-chart-form input,
+.mw-chart-form select {
+  background: var(--bg-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 6px 8px;
+}
+
+.mw-chart-form input:focus,
+.mw-chart-form select:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
 .mw-backlink {
   font-family: var(--font-mono);
   font-size: 13px;
