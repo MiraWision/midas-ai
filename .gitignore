@@ -30,6 +30,7 @@ yarn-error.log*
 # machine live here; register them in the (user-owned) index.ts files
 src/strategies/user/
 src/datasets/user/
+src/scenarios/user/
 
 # python sidecars (if you add model-inference tooling)
 .venv/

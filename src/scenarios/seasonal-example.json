@@ -1,0 +1,14 @@
+{
+  "id": "seasonal-example",
+  "name": "Weekly seasonality scan (example scenario)",
+  "interval": "15m",
+  "signal": {
+    "type": "seasonal-windows",
+    "params": {
+      "weeksBack": 26,
+      "lambdaDecay": 0.05,
+      "costPct": 0.12,
+      "permQuantile": 0.95
+    }
+  }
+}
